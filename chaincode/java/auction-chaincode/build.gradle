@@ -1,0 +1,110 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'application'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'java-library-distribution'
+}
+
+group 'org.hyperledger.fabric.samples'
+version '1.0-SNAPSHOT'
+
+
+dependencies {
+    compileOnly 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.4.1'
+    compileOnly 'org.json:json:+'
+    compileOnly 'com.owlike:genson:1.5'
+    implementation "org.slf4j:slf4j-simple:1.7.9"
+    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.4.1'
+    implementation 'org.hyperledger.fabric:fabric-gateway-java:2.2.+'
+    testImplementation 'org.json:json:+'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'com.owlike:genson:1.5'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://jitpack.io'
+    }
+}
+
+
+application {
+    mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
+}
+
+
+checkstyle {
+    toolVersion '8.21'
+    configFile file("config/checkstyle/checkstyle.xml")
+}
+
+checkstyleMain {
+    source ='src/main/java'
+}
+
+
+jacocoTestReport {
+    dependsOn test
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.9
+            }
+        }
+    }
+
+    finalizedBy jacocoTestReport
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
+
+shadowJar {
+    baseName = 'chaincode'
+    version = null
+    classifier = null
+
+    manifest {
+        attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
+    }
+}
+
+task runApp (type: JavaExec){
+    description = "Task di prova"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "application.Prova"
+}
+
+task EnrollAdmin (type: JavaExec){
+    description = "Enroll Admin Task"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "application.AppEnrollAdmin"
+}
+
+task RegisterUser (type: JavaExec){
+    description = "Register User task"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "application.AppRegisterUser"
+}
+
+task CreateAuction (type: JavaExec){
+    description = "Create a new auction task"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "application.AppCreateAuction"
+}
+
+check.dependsOn jacocoTestCoverageVerification
+installDist.dependsOn check
